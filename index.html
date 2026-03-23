@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BLACKCHECK - 블랙첵</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
+:root{
+  --bg:#080F18; --bg2:#0C1520; --card:#111C28; --card2:#162031;
+  --cb:rgba(255,255,255,.06); --cbh:rgba(0,201,167,.28);
+  --mint:#00C9A7; --mdim:rgba(0,201,167,.12); --mglow:rgba(0,201,167,.22);
+  --stay:#2D6BE4; --sdim:rgba(45,107,228,.14);
+  --go:#FF6B35; --gdim:rgba(255,107,53,.14);
+  --txt:#EFF4F8; --txt2:#C2D1DD; --sub:#6B8599; --line:rgba(255,255,255,.055);
+  --tab-h:66px; --sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--txt);font-family:'Noto Sans KR',-apple-system,sans-serif;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px 180px;}
+#app{width:100%;height:100dvh;display:flex;flex-direction:column;position:relative;z-index:1;}
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.tab-content{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-h) + var(--sb) + 10px);}
+.tab-content.active{display:block;}
+
+/* LOGIN */
+#screen-login{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;overflow-y:auto;}
+#screen-login::before{content:'';position:fixed;top:-100px;left:50%;transform:translateX(-50%);width:440px;height:440px;pointer-events:none;background:radial-gradient(ellipse,rgba(0,201,167,.07) 0%,transparent 68%);}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:50px;letter-spacing:10px;color:var(--mint);line-height:1;text-shadow:0 0 50px rgba(0,201,167,.32),0 0 100px rgba(0,201,167,.12);margin-bottom:8px;animation:logoIn .8s cubic-bezier(.2,0,0,1) both;}
+@keyframes logoIn{from{opacity:0;letter-spacing:22px;transform:translateY(-10px)}to{opacity:1;letter-spacing:10px;transform:translateY(0)}}
+.login-tagline{font-size:11px;font-weight:600;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:44px;animation:fadeUp .5s .22s both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.login-form{width:100%;max-width:340px;animation:fadeUp .5s .38s both;}
+.ifield{width:100%;background:var(--card);border:1px solid var(--cb);border-radius:12px;padding:14px 16px;font-size:15px;color:var(--txt);font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:11px;}
+.ifield:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mdim);}
+.ifield::placeholder{color:var(--sub);}
+.btn-login-main{width:100%;padding:15px;border-radius:12px;border:none;background:var(--mint);color:#080F18;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.4px;transition:all .18s;box-shadow:0 8px 28px rgba(0,201,167,.28);}
+.btn-login-main:active{transform:scale(.98);opacity:.9;}
+.divider{display:flex;align-items:center;gap:14px;margin:22px 0;}
+.divider-line{flex:1;height:1px;background:var(--line);}
+.divider span{color:var(--sub);font-size:11px;font-weight:600;letter-spacing:1px;}
+.social-row{display:flex;gap:10px;}
+.btn-social{flex:1;padding:13px 8px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--cb);font-family:inherit;transition:all .15s;background:var(--card);color:var(--txt2);}
+.btn-social:active{opacity:.8;transform:scale(.97);}
+.signup-link{margin-top:22px;font-size:13px;color:var(--sub);text-align:center;}
+.signup-link button{background:none;border:none;color:var(--mint);font-size:13px;cursor:pointer;font-family:inherit;font-weight:700;}
+
+/* TAB BAR */
+#tab-bar{position:fixed;bottom:0;left:0;right:0;height:calc(var(--tab-h) + var(--sb));padding-bottom:var(--sb);background:rgba(8,15,24,.94);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);display:flex;border-top:1px solid var(--line);z-index:100;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;color:var(--sub);font-size:10px;font-weight:600;font-family:inherit;transition:color .2s;position:relative;}
+.tab-btn .icon{font-size:18px;line-height:1;transition:transform .2s;}
+.tab-btn.active{color:var(--mint);}
+.tab-btn.active .icon{transform:translateY(-1px);}
+.tab-btn.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;border-radius:0 0 3px 3px;background:var(--mint);box-shadow:0 0 8px var(--mglow);}
+
+/* PAGE HEADER */
+.page-header{position:sticky;top:0;z-index:50;padding:15px 18px 11px;background:rgba(8,15,24,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line);}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;color:var(--mint);line-height:1;}
+.slogan{font-size:11px;color:var(--sub);margin-top:3px;letter-spacing:.7px;font-weight:500;}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--tab-h) + 18px);left:50%;transform:translateX(-50%) translateY(14px);background:var(--card2);color:var(--txt);padding:11px 22px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);border:1px solid var(--cb);box-shadow:0 12px 40px rgba(0,0,0,.5);pointer-events:none;max-width:88vw;text-align:center;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.login-toast{bottom:38px;}
+
+/* SECTION LABEL */
+.section-label{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;font-family:inherit;font-weight:700;cursor:pointer;transition:all .15s;user-select:none;}
+.btn-primary{background:var(--mint);color:#080F18;padding:15px 20px;font-size:15px;width:100%;box-shadow:0 6px 22px rgba(0,201,167,.24);}
+.btn-primary:active{opacity:.88;transform:scale(.98);}
+.btn-stay{background:var(--stay);color:#fff;padding:15px 20px;font-size:15px;flex:1;box-shadow:0 6px 22px rgba(45,107,228,.28);}
+.btn-go{background:var(--go);color:#fff;padding:15px 20px;font-size:15px;flex:1;box-shadow:0 6px 22px rgba(255,107,53,.28);}
+.btn-stay:active,.btn-go:active{transform:scale(.97);opacity:.9;}
+.btn-outline{background:transparent;border:1px solid var(--mint);color:var(--mint);padding:13px 16px;font-size:14px;width:100%;border-radius:12px;}
+.btn-outline:active{background:var(--mdim);}
+.btn-ghost{background:transparent;color:var(--sub);padding:10px 12px;font-size:13px;border:1px solid var(--line);border-radius:10px;}
+.btn-ghost:active{background:var(--card2);}
+
+/* FORMS */
+.form-label{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;display:block;letter-spacing:1px;text-transform:uppercase;}
+.form-group{margin-bottom:17px;}
+.sel{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--txt);font-family:inherit;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B8599' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color .2s;}
+.sel:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mdim);outline:none;}
+.sel option{background:#162031;}
+.finput{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--txt);font-family:inherit;outline:none;transition:border-color .2s;}
+.finput:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mdim);}
+.finput::placeholder{color:var(--sub);}
+.ftextarea{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--txt);font-family:inherit;outline:none;resize:none;transition:border-color .2s;line-height:1.6;}
+.ftextarea:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mdim);}
+.ftextarea::placeholder{color:var(--sub);}
+
+/* HOME */
+.home-content{padding:18px 16px 0;}
+.stat-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.stat-card{border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;border:1px solid var(--cb);position:relative;overflow:hidden;}
+.stat-card:nth-child(1){background:linear-gradient(135deg,#111C28,#0f1d18);}
+.stat-card:nth-child(2){background:linear-gradient(135deg,#111C28,#131f1a);}
+.stat-card:nth-child(3){background:linear-gradient(135deg,#111C28,#171a28);}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.stat-card:nth-child(1)::before{background:var(--go);}
+.stat-card:nth-child(2)::before{background:var(--mint);}
+.stat-card:nth-child(3)::before{background:var(--stay);}
+.stat-icon{font-size:22px;flex-shrink:0;}
+.stat-number{font-size:20px;font-weight:900;line-height:1;margin-bottom:2px;}
+.stat-desc{font-size:12px;color:var(--sub);font-weight:500;}
+.stat-card:nth-child(1) .stat-number{color:var(--go);}
+.stat-card:nth-child(2) .stat-number{color:var(--mint);}
+.stat-card:nth-child(3) .stat-number{color:var(--stay);}
+.home-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.home-nav-btn{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:15px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;color:var(--txt);font-family:inherit;transition:all .15s;}
+.home-nav-btn:active{background:var(--card2);border-color:var(--cbh);}
+.home-nav-btn .btn-label{display:flex;align-items:center;gap:12px;}
+.home-nav-btn .btn-icon{font-size:20px;}
+.home-nav-btn .btn-main{font-size:14px;font-weight:700;}
+.home-nav-btn .btn-sub{font-size:11px;color:var(--sub);font-weight:400;margin-top:2px;}
+.home-nav-btn .arrow{width:28px;height:28px;border-radius:50%;background:var(--mdim);display:flex;align-items:center;justify-content:center;color:var(--mint);font-size:13px;flex-shrink:0;}
+
+/* WORRY CARD */
+.worry-card{background:var(--card);border-radius:16px;padding:16px 17px;border:1px solid var(--cb);cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.worry-card+.worry-card{margin-top:10px;}
+.worry-card:active{border-color:var(--cbh);box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.badge-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(255,255,255,.06);color:var(--sub);}
+.badge-ind{background:var(--mdim);color:var(--mint);}
+.badge-year{background:var(--sdim);color:#7fa4f5;}
+.worry-title{font-size:15px;font-weight:700;margin-bottom:7px;line-height:1.45;}
+.worry-preview{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:13px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.vote-bar-wrap{margin-bottom:8px;}
+.vote-labels{display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:5px;letter-spacing:.4px;}
+.vlstay{color:var(--stay);}.vlgo{color:var(--go);}
+.vote-bar-bg{border-radius:100px;background:rgba(255,255,255,.05);overflow:hidden;display:flex;}
+.vb-stay{background:var(--stay);transition:width .6s cubic-bezier(.4,0,.2,1);}
+.vb-go{background:var(--go);flex:1;}
+.worry-meta{display:flex;gap:14px;font-size:12px;color:var(--sub);align-items:center;font-weight:500;}
+.worry-meta .pt{color:var(--mint);font-weight:700;}
+
+/* TAB2 */
+.tab2-header{padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;background:rgba(8,15,24,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line);}
+.tab2-title{font-size:17px;font-weight:800;}
+.btn-add{background:var(--mint);color:#080F18;border:none;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,201,167,.22);}
+.btn-add:active{opacity:.85;transform:scale(.96);}
+.worry-list{padding:14px 16px 0;}
+
+/* DETAIL VIEW */
+#detail-view{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:48px;}
+#detail-view.open{transform:translateX(0);}
+.detail-header{position:sticky;top:0;background:rgba(8,15,24,.92);backdrop-filter:blur(18px);padding:13px 16px 11px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;z-index:10;}
+.back-btn{background:var(--card);border:1px solid var(--line);color:var(--txt2);font-size:16px;cursor:pointer;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.back-btn:active{background:var(--card2);}
+.detail-header-title{font-size:14px;font-weight:700;color:var(--sub);}
+.detail-body{padding:18px 16px;}
+.detail-full-content{font-size:15px;line-height:1.85;color:var(--txt2);margin-bottom:22px;padding:18px;background:var(--card);border-radius:14px;border:1px solid var(--line);}
+.vote-result-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:12px;border:1px solid var(--line);}
+.vote-total{font-size:11px;color:var(--sub);font-weight:600;margin-top:5px;letter-spacing:.4px;}
+.vote-section{margin-bottom:26px;}
+.vote-btns{display:flex;gap:10px;}
+.answer-section-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.answer-section-title::after{content:'';flex:1;height:1px;background:var(--line);}
+.answer-form{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--line);}
+.answer-textarea{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--txt);font-family:inherit;resize:none;outline:none;margin-bottom:11px;transition:border-color .2s,box-shadow .2s;line-height:1.6;}
+.answer-textarea:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mdim);}
+.answer-type-row{display:flex;gap:8px;margin-bottom:11px;}
+.type-btn{flex:1;padding:11px;border-radius:10px;border:1.5px solid transparent;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.type-btn-stay{background:var(--sdim);color:var(--stay);}
+.type-btn-stay.selected{border-color:var(--stay);background:rgba(45,107,228,.2);}
+.type-btn-go{background:var(--gdim);color:var(--go);}
+.type-btn-go.selected{border-color:var(--go);background:rgba(255,107,53,.2);}
+.point-info{font-size:12px;color:var(--mint);margin-bottom:11px;font-weight:600;}
+.btn-submit-answer{background:var(--mint);color:#080F18;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;}
+.btn-submit-answer:active{opacity:.88;}
+.answer-item{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--line);}
+.answer-item.is-best{border-color:rgba(0,201,167,.18);}
+.answer-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.answer-meta{display:flex;align-items:center;gap:8px;}
+.ans-avatar{width:26px;height:26px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);font-weight:700;flex-shrink:0;}
+.ans-author{font-size:12px;color:var(--sub);font-weight:600;}
+.best-chip{display:inline-flex;align-items:center;gap:3px;background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.22);color:var(--mint);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;}
+.abadge-stay{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--sdim);color:var(--stay);}
+.abadge-go{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--gdim);color:var(--go);}
+.answer-text{font-size:14px;line-height:1.7;margin-bottom:11px;color:var(--txt2);}
+.btn-like{background:var(--bg2);border:1px solid var(--line);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-like:active{transform:scale(.95);}
+.btn-like.liked{background:var(--mdim);border-color:rgba(0,201,167,.28);color:var(--mint);}
+.btn-kakao-share{background:#FEE500;color:#000;border:none;border-radius:12px;padding:14px 20px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-kakao-share:active{opacity:.85;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .24s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{width:100%;max-width:600px;background:var(--card2);border-radius:24px 24px 0 0;padding:0 20px calc(28px + var(--sb));max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-top:1px solid rgba(255,255,255,.07);}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-sticky{position:sticky;top:0;z-index:2;background:var(--card2);padding:14px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+.modal-handle{width:34px;height:4px;background:rgba(255,255,255,.1);border-radius:4px;margin:0 auto 14px;}
+.modal-title{font-size:17px;font-weight:800;}
+.pt-row{display:flex;gap:8px;}
+.pt-opt{flex:1;padding:11px 4px;text-align:center;border-radius:10px;border:1.5px solid var(--line);background:var(--bg2);color:var(--sub);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.pt-opt.selected{border-color:var(--mint);color:var(--mint);background:var(--mdim);}
+.pt-opt:active{transform:scale(.95);}
+
+/* TAB3 — 3-STEP */
+.tab3-content{padding:0 0 20px;}
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:0;padding:14px 20px 12px;position:sticky;top:0;z-index:40;background:rgba(8,15,24,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);}
+.step-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--sub);transition:all .25s;}
+.step-dot.active{border-color:var(--mint);background:var(--mdim);color:var(--mint);box-shadow:0 0 10px var(--mglow);}
+.step-dot.done{border-color:var(--mint);background:var(--mint);color:#080F18;}
+.step-dot-label{font-size:10px;font-weight:600;color:var(--sub);letter-spacing:.3px;transition:color .25s;}
+.step-dot-wrap.active .step-dot-label,.step-dot-wrap.done .step-dot-label{color:var(--mint);}
+.step-line{width:36px;height:2px;background:var(--line);margin:0 4px;margin-bottom:18px;border-radius:2px;transition:background .3s;}
+.step-line.done{background:var(--mint);}
+.step-panel{display:none;padding:18px 16px;}
+.step-panel.active{display:block;animation:slideUp .25s ease;}
+.step-section-title{font-size:17px;font-weight:800;margin-bottom:4px;}
+.step-section-sub{font-size:12px;color:var(--sub);margin-bottom:18px;line-height:1.5;}
+.subsec-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:4px;}
+.subsec-badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:100px;letter-spacing:1px;}
+.subsec-badge.hw{background:rgba(45,107,228,.18);color:var(--stay);}
+.subsec-badge.sw{background:rgba(0,201,167,.14);color:var(--mint);}
+.subsec-title{font-size:13px;font-weight:700;color:var(--txt2);}
+.subsec-hint{font-size:11px;color:var(--sub);margin-bottom:14px;line-height:1.5;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:8px;border-left:2px solid var(--mint);}
+.slider-group{margin-bottom:14px;}
+.slider-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.slider-label{font-size:13px;font-weight:600;}
+.slider-hint-text{font-size:11px;color:var(--sub);display:block;margin-top:1px;}
+.slider-val{font-size:16px;font-weight:900;color:var(--mint);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;min-width:22px;text-align:right;}
+input[type=range]{width:100%;height:4px;border-radius:4px;outline:none;border:none;background:var(--line);cursor:pointer;appearance:none;-webkit-appearance:none;}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--mint);border:2px solid #080F18;box-shadow:0 0 8px var(--mglow);cursor:pointer;transition:transform .15s;}
+input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2);}
+.step-nav{display:flex;gap:10px;margin-top:20px;}
+.btn-step-next{background:var(--mint);color:#080F18;border:none;border-radius:12px;padding:15px 20px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;flex:1;box-shadow:0 6px 22px rgba(0,201,167,.24);}
+.btn-step-next:active{opacity:.88;transform:scale(.98);}
+.btn-step-prev{background:var(--card);color:var(--sub);border:1px solid var(--line);border-radius:12px;padding:15px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-step-prev:active{background:var(--card2);}
+.chart-wrap{background:var(--card);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--line);}
+.chart-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.chart-title{font-size:14px;font-weight:700;}
+.chart-legend{display:flex;gap:12px;font-size:11px;font-weight:600;color:var(--sub);}
+.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
+.chart-canvas-wrap{width:100%;max-width:300px;margin:0 auto;}
+.chart-sub-stats{display:flex;gap:8px;margin-top:12px;}
+.chart-sub-stat{flex:1;background:var(--bg2);border-radius:10px;padding:10px;text-align:center;}
+.chart-sub-stat-label{font-size:10px;color:var(--sub);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
+.chart-sub-stat-val{font-size:18px;font-weight:900;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.chart-sub-stat-val.hw{color:var(--stay);}
+.chart-sub-stat-val.sw{color:var(--mint);}
+.fit-hero{background:linear-gradient(135deg,#111C28,#0d1e14);border-radius:18px;padding:22px 20px;margin-bottom:14px;border:1px solid rgba(0,201,167,.15);text-align:center;position:relative;overflow:hidden;}
+.fit-hero::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(ellipse,rgba(0,201,167,.08),transparent 70%);pointer-events:none;}
+.fit-hero-label{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.fit-hero-score{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;letter-spacing:2px;margin-bottom:4px;}
+.fit-hero-grade{font-size:15px;font-weight:800;margin-bottom:6px;}
+.fit-hero-desc{font-size:13px;color:var(--sub);line-height:1.6;font-weight:500;}
+.compare-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.compare-card{background:var(--card);border-radius:12px;padding:14px 16px;border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.compare-card-label{font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.5px;}
+.compare-card-vals{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;}
+.compare-from{color:var(--stay);}
+.compare-arrow{color:var(--sub);font-size:11px;}
+.compare-to{color:var(--go);}
+.compare-delta{font-size:12px;font-weight:800;padding:2px 8px;border-radius:100px;}
+.compare-delta.up{color:var(--mint);background:var(--mdim);}
+.compare-delta.dn{color:var(--go);background:var(--gdim);}
+.compare-delta.eq{color:var(--sub);background:rgba(255,255,255,.06);}
+.result-box{background:var(--card);border-radius:14px;padding:17px;margin-bottom:14px;border:1px solid var(--line);position:relative;overflow:hidden;}
+.result-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.result-box.green::before{background:var(--mint);}
+.result-box.yellow::before{background:#FFD93D;}
+.result-box.red::before{background:var(--go);}
+.result-grade{font-size:14px;font-weight:800;margin-bottom:6px;}
+.result-grade.green{color:var(--mint);}.result-grade.yellow{color:#FFD93D;}.result-grade.red{color:var(--go);}
+.result-desc{font-size:13px;color:var(--sub);line-height:1.6;font-weight:500;}
+
+/* TAB4 — 연봉계산기 */
+.tab4-content{padding:18px 16px;}
+.calc-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+.calc-sub{font-size:12px;color:var(--sub);margin-bottom:22px;line-height:1.5;}
+.salary-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.salary-card{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--line);position:relative;overflow:hidden;}
+.salary-card.highlight{border-color:rgba(0,201,167,.3);box-shadow:0 0 20px rgba(0,201,167,.08);}
+.salary-card-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.salary-card-label.gray{color:var(--sub);}
+.salary-card-label.green{color:var(--mint);}
+.salary-card-label.orange{color:var(--go);}
+.salary-card-amount{font-size:30px;font-weight:900;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:6px;}
+.salary-card-amount.gray{color:var(--txt2);}
+.salary-card-amount.green{color:var(--mint);}
+.salary-card-amount.orange{color:var(--go);}
+.salary-card-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+.salary-info-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--line);}
+.salary-info-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.salary-info-row:last-child{border-bottom:none;}
+.salary-info-label{color:var(--sub);font-weight:500;}
+.salary-info-val{font-weight:700;}
+.tip-card{background:linear-gradient(135deg,var(--card),#0d1e14);border-radius:12px;padding:14px 16px;border:1px solid rgba(0,201,167,.12);margin-bottom:16px;}
+.tip-label{font-size:10px;font-weight:800;color:var(--mint);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.tip-text{font-size:13px;color:var(--txt2);line-height:1.6;font-weight:500;}
+
+/* TAB5 — 내정보 */
+.tab5-content{padding:18px 16px;}
+.point-hero{background:linear-gradient(135deg,#111C28 0%,#0a1c14 100%);border-radius:20px;padding:24px 22px;text-align:center;margin-bottom:16px;border:1px solid rgba(0,201,167,.14);position:relative;overflow:hidden;}
+.point-hero::before{content:'';position:absolute;top:-50px;left:50%;transform:translateX(-50%);width:200px;height:200px;pointer-events:none;background:radial-gradient(ellipse,rgba(0,201,167,.08),transparent 70%);}
+.point-hero-label{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.point-hero-val{font-family:'Bebas Neue',sans-serif;font-size:54px;color:var(--mint);letter-spacing:3px;line-height:1;}
+.point-hero-unit{font-size:18px;color:var(--sub);font-weight:600;margin-left:4px;letter-spacing:1px;}
+.level-card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--line);}
+.level-badge-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.level-badge{font-size:13px;font-weight:800;padding:5px 14px;border-radius:100px;border:2px solid var(--mint);color:var(--mint);background:var(--mdim);}
+.level-name{font-size:15px;font-weight:800;}
+.level-next{font-size:12px;color:var(--sub);margin-bottom:8px;}
+.level-bar-bg{height:6px;border-radius:100px;background:rgba(255,255,255,.06);overflow:hidden;}
+.level-bar-inner{height:100%;border-radius:100px;background:var(--mint);transition:width .6s cubic-bezier(.4,0,.2,1);}
+.how-to-card{background:var(--card);border-radius:14px;padding:15px 17px;margin-bottom:16px;border:1px solid var(--line);}
+.how-to-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:13px;}
+.how-to-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:500;}
+.how-to-item:last-child{border-bottom:none;padding-bottom:0;}
+.how-icon-box{width:32px;height:32px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.htlabel{font-size:13px;font-weight:600;}
+.htsub{font-size:11px;color:var(--sub);margin-top:1px;}
+.how-pt{margin-left:auto;font-size:13px;font-weight:800;}
+.how-pt.plus{color:var(--mint);}.how-pt.minus{color:var(--go);}
+.shop-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:11px;}
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.shop-card{background:var(--card);border-radius:12px;padding:14px 12px;border:1px solid var(--line);position:relative;text-align:center;}
+.shop-icon{font-size:22px;margin-bottom:6px;}
+.shop-name{font-size:12px;font-weight:700;margin-bottom:4px;}
+.shop-price{font-size:11px;color:var(--mint);font-weight:800;}
+.shop-lock{position:absolute;top:8px;right:8px;font-size:12px;}
+.hist-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:11px;}
+.hist-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.hist-item:last-child{border-bottom:none;}
+.hist-icon{width:34px;height:34px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.hist-desc{font-size:14px;font-weight:500;}
+.hist-time{font-size:11px;color:var(--sub);margin-top:2px;}
+.hist-pt{font-size:15px;font-weight:800;margin-left:auto;}
+.hist-pt.plus{color:var(--mint);}.hist-pt.minus{color:var(--go);}
+
+/* MISC */
+.empty-state{text-align:center;padding:44px 20px;color:var(--sub);}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.55;}
+.empty-text{font-size:14px;font-weight:500;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:3px;}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:slideUp .28s ease forwards;}
+@media(min-width:480px){
+  #app{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.6);}
+  #tab-bar{max-width:480px;left:50%;transform:translateX(-50%);}
+  #toast{max-width:360px;}
+  #detail-view{max-width:480px;left:50%;transform:translateX(-50%) translateX(100%);}
+  #detail-view.open{transform:translateX(-50%) translateX(0);}
+  .modal-overlay{align-items:center;}
+  .modal-sheet{border-radius:20px;margin:0 16px;max-height:88dvh;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="login-logo">BLACKCHECK</div>
+  <div class="login-tagline">이직 전, 기업을 블랙첵하세요.</div>
+  <div class="login-form">
+    <input class="ifield" id="login-email" type="email" placeholder="이메일" autocomplete="email">
+    <input class="ifield" id="login-pw" type="password" placeholder="비밀번호">
+    <button class="btn-login-main" id="btn-login">로그인</button>
+    <div class="divider"><div class="divider-line"></div><span>OR</span><div class="divider-line"></div></div>
+    <div class="social-row">
+      <button class="btn-social" onclick="showToast('서비스 준비 중입니다 🚀',true)">🟡 카카오</button>
+      <button class="btn-social" onclick="showToast('서비스 준비 중입니다 🚀',true)">🔵 구글</button>
+    </div>
+    <div class="signup-link">계정이 없으신가요? <button onclick="showToast('서비스 준비 중입니다 🚀',true)">회원가입</button></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+
+<!-- TAB1: HOME -->
+<div class="tab-content active" id="tab-home">
+  <div class="page-header">
+    <div class="logo-text">BLACKCHECK</div>
+    <div class="slogan">이직 전, 기업을 블랙첵하세요.</div>
+  </div>
+  <div class="home-content">
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-icon">😔</div><div><div class="stat-number">46%</div><div class="stat-desc">직장인의 이직 후회 비율</div></div></div>
+      <div class="stat-card"><div class="stat-icon">💸</div><div><div class="stat-number">5,960만원</div><div class="stat-desc">이직 실패 시 평균 비용</div></div></div>
+      <div class="stat-card"><div class="stat-icon">📊</div><div><div class="stat-number">83%</div><div class="stat-desc">사전 정보 있었다면 STAY 선택</div></div></div>
+    </div>
+    <div class="home-btns">
+      <button class="home-nav-btn" onclick="switchTab('tab-staygo')">
+        <div class="btn-label"><span class="btn-icon">🤔</span><div><div class="btn-main">이직 고민 올리기</div><div class="btn-sub">커뮤니티에서 의견 받기</div></div></div>
+        <div class="arrow">→</div>
+      </button>
+      <button class="home-nav-btn" onclick="switchTab('tab-position')">
+        <div class="btn-label"><span class="btn-icon">📊</span><div><div class="btn-main">커리어 위치 진단</div><div class="btn-sub">업계 평균 대비 내 위치 확인</div></div></div>
+        <div class="arrow">→</div>
+      </button>
+      <button class="home-nav-btn" onclick="switchTab('tab-calc')">
+        <div class="btn-label"><span class="btn-icon">💰</span><div><div class="btn-main">연봉 협상 계산기</div><div class="btn-sub">얼마를 요구해야 할까?</div></div></div>
+        <div class="arrow">→</div>
+      </button>
+      <button class="home-nav-btn" onclick="showToast('서비스 준비 중입니다 🚀')">
+        <div class="btn-label"><span class="btn-icon">☕</span><div><div class="btn-main">커피챗 / 컨설팅</div><div class="btn-sub">현업자에게 직접 물어보기</div></div></div>
+        <div class="arrow">→</div>
+      </button>
+    </div>
+    <div class="section-label">최근 고민</div>
+    <div id="home-recent-list"></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- TAB2: STAY OR GO -->
+<div class="tab-content" id="tab-staygo">
+  <div class="tab2-header">
+    <div class="tab2-title">🤔 STAY OR GO?</div>
+    <button class="btn-add" id="btn-open-modal">+ 고민 올리기</button>
+  </div>
+  <div class="worry-list" id="worry-list"></div>
+  <div style="height:16px"></div>
+</div>
+
+<!-- TAB3: MY POSITION -->
+<div class="tab-content" id="tab-position">
+  <div class="page-header">
+    <div class="logo-text" style="font-size:20px;letter-spacing:2px">나의 위치</div>
+    <div class="slogan">이직 전, 기업을 블랙첵하세요.</div>
+  </div>
+  <div class="tab3-content">
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-dot-wrap active" id="sdw-1"><div class="step-dot active" id="sd-1">1</div><div class="step-dot-label">현재 직장</div></div>
+      <div class="step-line" id="sl-1"></div>
+      <div class="step-dot-wrap" id="sdw-2"><div class="step-dot" id="sd-2">2</div><div class="step-dot-label">이직 기업</div></div>
+      <div class="step-line" id="sl-2"></div>
+      <div class="step-dot-wrap" id="sdw-3"><div class="step-dot" id="sd-3">3</div><div class="step-dot-label">분석 결과</div></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-panel active" id="step-1">
+      <div class="step-section-title">📌 현재 직장 정보 입력</div>
+      <div class="step-section-sub">현재 직장의 객관적 조건과 주관적 만족도를 함께 입력하세요.</div>
+      <div class="subsec-header"><span class="subsec-badge hw">HARDWARE</span><span class="subsec-title">정량 요소</span></div>
+      <div class="form-group"><label class="form-label">산업군</label>
+        <select class="sel" id="c-industry"><option value="">선택해주세요</option><option>IT/게임</option><option>금융/핀테크</option><option>제약/바이오</option><option>제조/자동차</option><option>유통/커머스</option><option>컨설팅</option><option>미디어/콘텐츠</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">직무</label>
+        <select class="sel" id="c-role"><option value="">선택해주세요</option><option>개발/엔지니어</option><option>영업/마케팅</option><option>기획/PM</option><option>HR/경영지원</option><option>재무/회계</option><option>R&D/연구</option></select>
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1"><label class="form-label">현재 연차</label><input class="finput" id="c-years" type="number" min="1" max="20" placeholder="예: 5"></div>
+        <div class="form-group" style="flex:1.4"><label class="form-label">현재 연봉 (만원)</label><input class="finput" id="c-salary" type="number" placeholder="예: 4500"></div>
+      </div>
+      <div class="form-group"><label class="form-label">최종 학력</label>
+        <select class="sel" id="c-edu"><option>고졸</option><option>전문대졸</option><option selected>4년제(지방)</option><option>4년제(인서울)</option><option>대학원석사</option><option>대학원박사</option></select>
+      </div>
+      <div class="subsec-header" style="margin-top:20px"><span class="subsec-badge sw">SOFTWARE</span><span class="subsec-title">정성 요소</span></div>
+      <div class="subsec-hint">현재 직장에 대한 주관적 평가입니다. 솔직하게 입력할수록 정확한 진단이 됩니다.</div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">기업문화 만족도</div><span class="slider-hint-text">팀 분위기, 수평적 소통, 성장 지원</span></div><div class="slider-val" id="v-c-culture">5</div></div><input type="range" min="1" max="10" value="5" id="s-c-culture" oninput="document.getElementById('v-c-culture').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">오너/경영진 신뢰도</div><span class="slider-hint-text">경영 방향, 비전, 오너십 리스크</span></div><div class="slider-val" id="v-c-owner">5</div></div><input type="range" min="1" max="10" value="5" id="s-c-owner" oninput="document.getElementById('v-c-owner').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">직무 성장 체감도</div><span class="slider-hint-text">배움, 커리어 발전, 스킬 향상</span></div><div class="slider-val" id="v-c-growth">5</div></div><input type="range" min="1" max="10" value="5" id="s-c-growth" oninput="document.getElementById('v-c-growth').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">워라밸 만족도</div><span class="slider-hint-text">야근 빈도, 휴가 사용, 업무 강도</span></div><div class="slider-val" id="v-c-wlb">5</div></div><input type="range" min="1" max="10" value="5" id="s-c-wlb" oninput="document.getElementById('v-c-wlb').textContent=this.value"></div>
+      <div class="step-nav"><button class="btn-step-next" onclick="goStep(2)">다음 단계 →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-panel" id="step-2">
+      <div class="step-section-title">🎯 이직 고려 기업 정보 입력</div>
+      <div class="step-section-sub">이직을 고려 중인 기업 정보를 입력하세요. 모를 경우 예상값으로 입력해도 됩니다.</div>
+      <div class="subsec-header"><span class="subsec-badge hw">HARDWARE</span><span class="subsec-title">정량 요소</span></div>
+      <div class="form-group"><label class="form-label">산업군</label>
+        <select class="sel" id="t-industry"><option value="">선택해주세요</option><option>IT/게임</option><option>금융/핀테크</option><option>제약/바이오</option><option>제조/자동차</option><option>유통/커머스</option><option>컨설팅</option><option>미디어/콘텐츠</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">기업 규모</label>
+        <select class="sel" id="t-size"><option value="">선택해주세요</option><option>대기업(1000명+)</option><option>중견기업(300~999명)</option><option>중소기업(50~299명)</option><option>스타트업(~49명)</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">제시 연봉 (만원)</label><input class="finput" id="t-salary" type="number" placeholder="예: 5500"></div>
+      <div class="form-group"><label class="form-label">복지 수준</label>
+        <select class="sel" id="t-welfare"><option value="">선택해주세요</option><option>업계 최상위</option><option>업계 평균 이상</option><option>업계 평균</option><option>평균 이하</option></select>
+      </div>
+      <div class="subsec-header" style="margin-top:20px"><span class="subsec-badge sw">SOFTWARE</span><span class="subsec-title">정성 요소</span></div>
+      <div class="subsec-hint">알고 있는 정보나 인터뷰에서 느낀 인상으로 평가해주세요.</div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">조직문화 평판</div><span class="slider-hint-text">면접 인상, 후기, 평판 조회 결과</span></div><div class="slider-val" id="v-t-culture">5</div></div><input type="range" min="1" max="10" value="5" id="s-t-culture" oninput="document.getElementById('v-t-culture').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">오너리스크 수준</div><span class="slider-hint-text">낮을수록 좋음 — 오너 이슈, 경영 불확실성</span></div><div class="slider-val" id="v-t-owner">5</div></div><input type="range" min="1" max="10" value="5" id="s-t-owner" oninput="document.getElementById('v-t-owner').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">직무 성장 환경</div><span class="slider-hint-text">해당 포지션의 성장 가능성</span></div><div class="slider-val" id="v-t-growth">5</div></div><input type="range" min="1" max="10" value="5" id="s-t-growth" oninput="document.getElementById('v-t-growth').textContent=this.value"></div>
+      <div class="slider-group"><div class="slider-label-row"><div><div class="slider-label">워라밸 평판</div><span class="slider-hint-text">알려진 야근 문화, 휴가 분위기</span></div><div class="slider-val" id="v-t-wlb">5</div></div><input type="range" min="1" max="10" value="5" id="s-t-wlb" oninput="document.getElementById('v-t-wlb').textContent=this.value"></div>
+      <div class="step-nav">
+        <button class="btn-step-prev" onclick="goStep(1)">← 이전</button>
+        <button class="btn-step-next" onclick="runDiagnosis()">진단 결과 보기 →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-panel" id="step-3">
+      <div class="chart-wrap">
+        <div class="chart-title-row"><div class="chart-title">📌 현재 직장 분석</div><div class="chart-legend"><span><span class="ldot" style="background:var(--stay)"></span>현재</span><span><span class="ldot" style="background:var(--sub)"></span>업계평균</span></div></div>
+        <div class="chart-canvas-wrap"><canvas id="chart-current"></canvas></div>
+        <div class="chart-sub-stats">
+          <div class="chart-sub-stat"><div class="chart-sub-stat-label">HW 평균</div><div class="chart-sub-stat-val hw" id="c-hw-avg">—</div></div>
+          <div class="chart-sub-stat"><div class="chart-sub-stat-label">SW 평균</div><div class="chart-sub-stat-val sw" id="c-sw-avg">—</div></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title-row"><div class="chart-title">🎯 이직 기업 분석</div><div class="chart-legend"><span><span class="ldot" style="background:var(--go)"></span>이직기업</span><span><span class="ldot" style="background:var(--sub)"></span>업계평균</span></div></div>
+        <div class="chart-canvas-wrap"><canvas id="chart-target"></canvas></div>
+        <div class="chart-sub-stats">
+          <div class="chart-sub-stat"><div class="chart-sub-stat-label">HW 평균</div><div class="chart-sub-stat-val hw" id="t-hw-avg">—</div></div>
+          <div class="chart-sub-stat"><div class="chart-sub-stat-label">SW 평균</div><div class="chart-sub-stat-val sw" id="t-sw-avg">—</div></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title-row"><div class="chart-title">⚖️ FIT 비교 분석</div><div class="chart-legend"><span><span class="ldot" style="background:var(--stay)"></span>현재</span><span><span class="ldot" style="background:var(--go)"></span>이직기업</span></div></div>
+        <div class="chart-canvas-wrap"><canvas id="chart-fit"></canvas></div>
+      </div>
+      <div class="fit-hero" id="fit-hero">
+        <div class="fit-hero-label">종합 FIT 점수</div>
+        <div class="fit-hero-score" id="fit-score-val">—</div>
+        <div class="fit-hero-grade" id="fit-grade">—</div>
+        <div class="fit-hero-desc" id="fit-desc">—</div>
+      </div>
+      <div class="compare-cards" id="compare-cards"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px">
+        <button class="btn btn-stay" style="border-radius:12px;width:100%" onclick="switchTab('tab-staygo')">이 고민 STAY OR GO?에 올리기 →</button>
+        <button class="btn btn-outline" onclick="showToast('서비스 준비 중입니다 🚀')">전문 컨설턴트 상담받기 →</button>
+      </div>
+      <button class="btn btn-ghost" style="width:100%" onclick="resetPosition()">↺ 다시 진단하기</button>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB4: 연봉 계산기 -->
+<div class="tab-content" id="tab-calc">
+  <div class="page-header">
+    <div class="logo-text" style="font-size:20px;letter-spacing:2px">연봉 협상</div>
+    <div class="slogan">이직 시 얼마를 요구해야 할까요?</div>
+  </div>
+  <div class="tab4-content">
+    <div id="calc-form-section">
+      <div class="form-group"><label class="form-label">현재 연봉 (만원)</label><input class="finput" id="calc-salary" type="number" placeholder="예: 4500"></div>
+      <div class="form-group"><label class="form-label">산업군</label>
+        <select class="sel" id="calc-industry"><option value="">선택해주세요</option><option>IT/게임</option><option>금융/핀테크</option><option>제약/바이오</option><option>제조/자동차</option><option>유통/커머스</option><option>컨설팅</option><option>미디어/콘텐츠</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">직무</label>
+        <select class="sel" id="calc-role"><option value="">선택해주세요</option><option>개발/엔지니어</option><option>영업/마케팅</option><option>기획/PM</option><option>HR/경영지원</option><option>재무/회계</option><option>R&D/연구</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">현재 연차</label><input class="finput" id="calc-years" type="number" min="1" max="20" placeholder="예: 5"></div>
+      <div class="form-group"><label class="form-label">이직 사유</label>
+        <select class="sel" id="calc-reason">
+          <option value="0.15">연봉 불만족 (+15%)</option>
+          <option value="0.10">성장 한계 (+10%)</option>
+          <option value="0.05">워라밸 개선 (+5%)</option>
+          <option value="0.12" selected>더 좋은 기회 (+12%)</option>
+          <option value="0.08">기타 (+8%)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="btn-calc">계산하기</button>
+    </div>
+
+    <div id="calc-result-section" style="display:none">
+      <div class="salary-cards">
+        <div class="salary-card">
+          <div class="salary-card-label gray">최소 라인</div>
+          <div class="salary-card-amount gray" id="calc-min">—</div>
+          <div class="salary-card-desc">이 이하는 협상 결렬을 고려하세요</div>
+        </div>
+        <div class="salary-card highlight">
+          <div class="salary-card-label green">✅ 추천 협상가</div>
+          <div class="salary-card-amount green" id="calc-rec">—</div>
+          <div class="salary-card-desc">업계 이직 프리미엄 + 이직 사유 반영</div>
+        </div>
+        <div class="salary-card">
+          <div class="salary-card-label orange">최대 도전가</div>
+          <div class="salary-card-amount orange" id="calc-max">—</div>
+          <div class="salary-card-desc">업계 상위 15% 수준, 협상력 강할 때</div>
+        </div>
+      </div>
+      <div class="salary-info-card">
+        <div class="salary-info-row"><span class="salary-info-label">업계 평균 연봉 (연차 기준)</span><span class="salary-info-val" id="calc-avg">—</span></div>
+        <div class="salary-info-row"><span class="salary-info-label">현재 연봉 업계 대비</span><span class="salary-info-val" id="calc-diff">—</span></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-label">💡 협상 팁</div>
+        <div class="tip-text" id="calc-tip">—</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px">
+        <button class="btn btn-stay" style="border-radius:12px;width:100%" onclick="switchTab('tab-position')">내 커리어 위치도 진단하기 →</button>
+        <button class="btn btn-outline" onclick="showToast('서비스 준비 중입니다 🚀')">연봉 협상 컨설팅 받기 →</button>
+      </div>
+      <button class="btn btn-ghost" style="width:100%" onclick="resetCalc()">↺ 다시 계산하기</button>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB5: 내정보 -->
+<div class="tab-content" id="tab-myinfo">
+  <div class="page-header">
+    <div class="logo-text" style="font-size:20px;letter-spacing:2px">내 정보</div>
+  </div>
+  <div class="tab5-content">
+    <div class="point-hero">
+      <div class="point-hero-label">보유 포인트</div>
+      <div><span class="point-hero-val" id="my-point">100</span><span class="point-hero-unit">P</span></div>
+    </div>
+    <div class="level-card" id="level-card"></div>
+    <div class="how-to-card">
+      <div class="how-to-title">포인트 가이드</div>
+      <div class="how-to-item"><div class="how-icon-box">✍️</div><div><div class="htlabel">답변 등록</div><div class="htsub">고민에 답변을 달면</div></div><span class="how-pt plus">+5P</span></div>
+      <div class="how-to-item"><div class="how-icon-box">🏆</div><div><div class="htlabel">베스트 답변 선정</div><div class="htsub">걸린 포인트 전액 획득</div></div><span class="how-pt plus">+P</span></div>
+      <div class="how-to-item"><div class="how-icon-box">📤</div><div><div class="htlabel">고민 올리기</div><div class="htsub">선택한 포인트 차감</div></div><span class="how-pt minus">-P</span></div>
+    </div>
+    <div class="shop-title">포인트 사용하기</div>
+    <div class="shop-grid">
+      <div class="shop-card"><div class="shop-icon">💬</div><div class="shop-name">커리어 컨설팅</div><div class="shop-price">200P</div><div class="shop-lock">🔒</div></div>
+      <div class="shop-card"><div class="shop-icon">🤝</div><div class="shop-name">헤드헌터 매칭</div><div class="shop-price">150P</div><div class="shop-lock">🔒</div></div>
+      <div class="shop-card"><div class="shop-icon">☕</div><div class="shop-name">현업자 커피챗</div><div class="shop-price">300P</div><div class="shop-lock">🔒</div></div>
+      <div class="shop-card"><div class="shop-icon">📋</div><div class="shop-name">기업 상세 리포트</div><div class="shop-price">50P</div><div class="shop-lock">🔒</div></div>
+    </div>
+    <div class="hist-title">포인트 내역</div>
+    <div id="point-history-list"></div>
+    <div style="margin-top:24px">
+      <button class="btn btn-ghost" style="width:100%;color:#ff6b6b;border-color:rgba(255,107,107,.18);font-size:14px;padding:13px" id="btn-logout">로그아웃</button>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- TAB BAR (5 tabs) -->
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="tab-home"><span class="icon">🏠</span><span>홈</span></button>
+  <button class="tab-btn" data-tab="tab-staygo"><span class="icon">🤔</span><span>고민</span></button>
+  <button class="tab-btn" data-tab="tab-position"><span class="icon">📊</span><span>위치</span></button>
+  <button class="tab-btn" data-tab="tab-calc"><span class="icon">💰</span><span>연봉</span></button>
+  <button class="tab-btn" data-tab="tab-myinfo"><span class="icon">👤</span><span>내정보</span></button>
+</div>
+</div><!-- /app -->
+
+<!-- DETAIL VIEW -->
+<div id="detail-view">
+  <div class="detail-header">
+    <button class="back-btn" id="btn-back-detail">←</button>
+    <div class="detail-header-title" id="detail-header-title"></div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- MODAL: POST WORRY -->
+<div class="modal-overlay" id="modal-post">
+  <div class="modal-sheet">
+    <div class="modal-sticky"><div class="modal-handle"></div><div class="modal-title">✏️ 이직 고민 올리기</div></div>
+    <div class="form-group"><label class="form-label">직종</label>
+      <select class="sel" id="m-industry"><option>IT/게임</option><option>금융/핀테크</option><option>제약/바이오</option><option>제조/자동차</option><option>유통/커머스</option><option>컨설팅</option><option>미디어/콘텐츠</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">연차</label>
+      <select class="sel" id="m-years"><option>1~3년차</option><option>4~7년차</option><option>8년차 이상</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">현재 연봉</label>
+      <select class="sel" id="m-salary"><option>3천만원 미만</option><option>3~4천</option><option>4~5천</option><option>5천 이상</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">고민 제목</label><input class="finput" id="m-title" type="text" placeholder="제목을 입력해주세요"></div>
+    <div class="form-group"><label class="form-label">고민 내용</label><textarea class="ftextarea" id="m-content" rows="4" placeholder="자세한 상황을 설명해주세요..."></textarea></div>
+    <div class="form-group"><label class="form-label">거는 포인트</label>
+      <div class="pt-row">
+        <button class="pt-opt selected" data-pt="0">0P</button>
+        <button class="pt-opt" data-pt="10">10P</button>
+        <button class="pt-opt" data-pt="20">20P</button>
+        <button class="pt-opt" data-pt="50">50P</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-worry" style="margin-bottom:4px">이직 고민 올리기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══ STATE ═══
+let state={
+  isLoggedIn:false,points:100,
+  pointHistory:[{desc:'회원가입 웰컴 포인트',pt:100,time:Date.now()-86400000}],
+  worries:[],currentTab:'tab-home',currentDetailId:null
+};
+
+const SAMPLES=[
+  {id:'sample1',industry:'IT/게임',years:'4~7년차',salary:'4~5천',
+   title:'대기업 SI 5년차, 스타트업 CTO 제안 받았습니다',
+   content:'현재 대기업 SI에서 5년 근무 중입니다. 시리즈B 스타트업에서 CTO 포지션을 제안받았는데, 연봉은 현재와 비슷하지만 스톡옵션이 있습니다. 안정적인 현재 회사 vs 성장 가능성 있는 스타트업, 어떻게 생각하세요? 팀원은 5명이고 기술스택 전환도 필요한 상황입니다.',
+   stayVotes:38,goVotes:62,points:20,myVote:null,time:Date.now()-3600000*24,
+   answers:[
+     {id:'a1',author:'익명의 개발자',type:'GO',text:'CTO 기회는 흔치 않아요. 시리즈B라면 어느 정도 검증된 비즈니스입니다. 스톡옵션도 크게 보면 큰 기회입니다.',likes:12,likedByMe:false},
+     {id:'a2',author:'10년차 개발자',type:'STAY',text:'스타트업 CTO는 개발만 하는 게 아닙니다. 채용, 문화, 전략까지 혼자 다 해야 해요. 준비가 됐는지 먼저 점검해보세요.',likes:8,likedByMe:false},
+     {id:'a3',author:'커리어 코치',type:'GO',text:'5년차에 CTO 제안은 흔치 않은 기회입니다. 리스크가 있지만 이 기회를 놓치면 후회할 가능성이 높습니다.',likes:15,likedByMe:false},
+     {id:'a4',author:'전직 스타트업러',type:'STAY',text:'시리즈B도 망하는 경우 많아요. 재무 상태 꼭 확인하세요. 런웨이가 얼마나 남았는지가 핵심입니다.',likes:7,likedByMe:false},
+     {id:'a5',author:'테크 리드',type:'GO',text:'대기업에서 CTO가 되는 경로보다 스타트업이 훨씬 빠릅니다. 나이 고려하면 지금이 타이밍이에요.',likes:10,likedByMe:false}
+   ]},
+  {id:'sample2',industry:'금융/핀테크',years:'1~3년차',salary:'3~4천',
+   title:'증권사 2년차, 컨설팅 이직 오퍼가 들어왔어요',
+   content:'증권사 리서치팀 2년차입니다. 전략 컨설팅 펌에서 오퍼를 받았는데 연봉이 1,200만원 인상됩니다. 하지만 컨설팅 특성상 야근과 출장이 많을 것 같아서 고민입니다. 장기 커리어 관점에서 어떤 선택이 나을까요?',
+   stayVotes:65,goVotes:35,points:10,myVote:null,time:Date.now()-3600000*48,
+   answers:[
+     {id:'b1',author:'IB 5년차',type:'STAY',text:'IB/PE 목표라면 증권사 리서치가 더 직접적인 경로입니다. 컨설팅 거치면 오히려 돌아가는 느낌일 수 있어요.',likes:18,likedByMe:false},
+     {id:'b2',author:'컨설턴트 3년차',type:'GO',text:'컨설팅에서 얻는 프레임워크와 네트워크는 정말 독보적입니다. 힘들지만 2~3년 버티면 레버리지가 생겨요.',likes:9,likedByMe:false},
+     {id:'b3',author:'금융업 10년차',type:'STAY',text:'2년차에 1,200 인상은 매력적이지만, 증권사 리서치 커리어를 섣불리 끊지 않는 걸 추천합니다.',likes:11,likedByMe:false}
+   ]},
+  {id:'sample3',industry:'제약/바이오',years:'4~7년차',salary:'5천 이상',
+   title:'빅파마 5년차, 바이오벤처 연봉 30% 인상 제안',
+   content:'글로벌 빅파마 한국법인에서 임상 5년 근무 중입니다. 국내 바이오벤처에서 연봉 30% 인상 + 스톡옵션을 제안받았습니다. 빅파마의 안정성과 글로벌 경험을 포기하기가 쉽지 않은데, 바이오 버블이 꺼진 상황에서 벤처 리스크가 걱정됩니다. 파이프라인은 2상 진행 중입니다.',
+   stayVotes:50,goVotes:50,points:50,myVote:null,time:Date.now()-3600000*72,
+   answers:[
+     {id:'c1',author:'바이오 투자자',type:'GO',text:'2상 진행 중이면 3~4년 내 성과가 나올 수 있습니다. 파이프라인 디테일과 팀 구성 먼저 확인해보세요.',likes:14,likedByMe:false},
+     {id:'c2',author:'빅파마 10년차',type:'STAY',text:'빅파마 경력은 한번 끊기면 다시 들어오기 어렵습니다. 특히 글로벌 네트워크는 나중에 정말 빛납니다.',likes:16,likedByMe:false},
+     {id:'c3',author:'벤처 CFO',type:'GO',text:'바이오 버블은 이미 조정됐고 오히려 지금이 기회입니다. 스톡옵션 조건 꼼꼼히 보세요.',likes:7,likedByMe:false},
+     {id:'c4',author:'임상 전문가',type:'STAY',text:'2상은 아직 리스크가 큽니다. 최소 3상 진입 이후 이직을 고려하는 게 안전합니다.',likes:13,likedByMe:false},
+     {id:'c5',author:'제약업 헤드헌터',type:'GO',text:'30% 인상 + 스톡은 정말 좋은 조건입니다. 비슷한 기회가 또 올 거라 생각하지 마세요.',likes:9,likedByMe:false},
+     {id:'c6',author:'이직 3회 경험자',type:'STAY',text:'가족이 있으면 STAY, 혼자라면 GO. 결국 리스크를 감당할 수 있는 상황인지가 기준입니다.',likes:19,likedByMe:false},
+     {id:'c7',author:'바이오 리서처',type:'GO',text:'기술력 있는 팀이면 GO입니다. 결국 사람이 성패를 가릅니다. CSO/CMO 누구인지 확인해보세요.',likes:8,likedByMe:false},
+     {id:'c8',author:'IPO 경험자',type:'GO',text:'IPO까지 간다면 스톡옵션으로 10년치 연봉을 버는 것도 가능합니다.',likes:11,likedByMe:false}
+   ]}
+];
+
+function loadState(){
+  const s=localStorage.getItem('blackcheck_state');
+  if(s){state={...state,...JSON.parse(s)};if(!state.worries||!state.worries.length)state.worries=JSON.parse(JSON.stringify(SAMPLES));}
+  else state.worries=JSON.parse(JSON.stringify(SAMPLES));
+}
+function saveState(){localStorage.setItem('blackcheck_state',JSON.stringify(state));}
+
+// TOAST
+let _tt=null;
+function showToast(msg,login=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='show'+(login?' login-toast':'');
+  clearTimeout(_tt);_tt=setTimeout(()=>{el.className='';},2800);
+}
+
+// AUTH
+function initAuth(){
+  if(state.isLoggedIn){showMain();}
+  else{document.getElementById('screen-login').style.display='flex';document.getElementById('main').style.display='none';document.getElementById('tab-bar').style.display='none';}
+}
+function showMain(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('main').style.display='flex';
+  document.getElementById('tab-bar').style.display='flex';
+  renderAll();
+}
+document.getElementById('btn-login').addEventListener('click',()=>{
+  const e=document.getElementById('login-email').value.trim();
+  const p=document.getElementById('login-pw').value.trim();
+  if(!e||!p){showToast('이메일과 비밀번호를 입력해주세요',true);return;}
+  state.isLoggedIn=true;saveState();showMain();
+});
+document.getElementById('btn-logout').addEventListener('click',()=>{
+  localStorage.removeItem('blackcheck_state');
+  state.isLoggedIn=false;
+  state.points=100;
+  state.pointHistory=[{desc:'회원가입 웰컴 포인트',pt:100,time:Date.now()-86400000}];
+  state.worries=JSON.parse(JSON.stringify(SAMPLES));
+  state.currentTab='tab-home';
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-home').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="tab-home"]').classList.add('active');
+  document.getElementById('main').style.display='none';
+  document.getElementById('tab-bar').style.display='none';
+  document.getElementById('screen-login').style.display='flex';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pw').value='';
+  showToast('로그아웃 됐어요',true);
+});
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${id}"]`).classList.add('active');
+  state.currentTab=id;
+  if(id==='tab-home')renderHomeRecent();
+  if(id==='tab-staygo')renderWorryList();
+  if(id==='tab-myinfo')renderMyInfo();
+}
+function renderAll(){renderHomeRecent();renderWorryList();renderMyInfo();}
+
+// VOTE BAR
+function voteBarHTML(sp,gp,h=5){
+  return `<div class="vote-labels"><span class="vlstay">STAY ${sp}%</span><span class="vlgo">GO ${gp}%</span></div><div class="vote-bar-bg" style="height:${h}px"><div class="vb-stay" style="width:${sp}%"></div><div class="vb-go"></div></div>`;
+}
+
+// WORRY CARD
+function worryCard(w,compact){
+  const tot=w.stayVotes+w.goVotes;
+  const sp=tot?Math.round(w.stayVotes/tot*100):50,gp=100-sp;
+  return `<div class="worry-card fade-in" onclick="openDetail('${w.id}')">
+    <div class="badge-row"><span class="badge badge-ind">${w.industry}</span><span class="badge badge-year">${w.years}</span><span class="badge">${w.salary}</span></div>
+    <div class="worry-title">${w.title}</div>
+    ${!compact?`<div class="worry-preview">${w.content}</div>`:''}
+    <div class="vote-bar-wrap">${voteBarHTML(sp,gp,5)}</div>
+    <div class="worry-meta"><span class="pt">🎯 ${w.points}P</span><span>💬 ${w.answers.length}개 답변</span></div>
+  </div>`;
+}
+function renderHomeRecent(){
+  const el=document.getElementById('home-recent-list');
+  const r=[...state.worries].sort((a,b)=>b.time-a.time).slice(0,2);
+  el.innerHTML=r.length?r.map(w=>worryCard(w,true)).join(''):'<div class="empty-state"><div class="empty-icon">🤔</div><div class="empty-text">아직 고민이 없어요</div></div>';
+}
+function renderWorryList(){
+  const el=document.getElementById('worry-list');
+  const s=[...state.worries].sort((a,b)=>b.time-a.time);
+  el.innerHTML=s.length?s.map(w=>worryCard(w,false)).join(''):'<div class="empty-state"><div class="empty-icon">🤔</div><div class="empty-text">첫 번째 고민을 올려보세요!</div></div>';
+}
+
+// DETAIL
+function openDetail(id){
+  const w=state.worries.find(x=>x.id===id);if(!w)return;
+  state.currentDetailId=id;
+  document.getElementById('detail-header-title').textContent=`${w.industry} · ${w.years}`;
+  renderDetail(w);
+  document.getElementById('detail-view').classList.add('open');
+}
+function renderDetail(w){
+  const tot=w.stayVotes+w.goVotes;
+  const sp=tot?Math.round(w.stayVotes/tot*100):50,gp=100-sp;
+  const best=w.answers.reduce((b,a)=>a.likes>(b?b.likes:-1)?a:b,null);
+  const answersHTML=w.answers.length===0
+    ?'<div class="empty-state" style="padding:20px 0"><div class="empty-text">첫 번째 답변을 남겨보세요!</div></div>'
+    :w.answers.sort((a,b)=>b.likes-a.likes).map(a=>{
+      const isBest=best&&a.id===best.id&&a.likes>0;
+      return `<div class="answer-item${isBest?' is-best':''}">
+        <div class="answer-item-header">
+          <div class="answer-meta"><div class="ans-avatar">${a.author.charAt(0)}</div><span class="ans-author">${a.author}</span>${isBest?'<span class="best-chip">🏆 BEST</span>':''}</div>
+          <span class="${a.type==='STAY'?'abadge-stay':'abadge-go'}">${a.type}</span>
+        </div>
+        <div class="answer-text">${a.text}</div>
+        <div><button class="btn-like${a.likedByMe?' liked':''}" onclick="toggleLike('${w.id}','${a.id}')">👍 <span>${a.likes}</span></button></div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('detail-body').innerHTML=`
+    <div class="badge-row" style="margin-bottom:12px">
+      <span class="badge badge-ind">${w.industry}</span><span class="badge badge-year">${w.years}</span>
+      <span class="badge">${w.salary}</span><span class="badge" style="color:var(--mint);background:var(--mdim)">🎯 ${w.points}P</span>
+    </div>
+    <div class="worry-title" style="font-size:17px;margin-bottom:13px;line-height:1.4">${w.title}</div>
+    <div class="detail-full-content">${w.content}</div>
+    <div class="vote-section">
+      <div class="vote-result-card"><div class="vote-bar-wrap">${voteBarHTML(sp,gp,8)}</div><div class="vote-total">${tot}명 참여</div></div>
+      ${!w.myVote?`<div class="vote-btns"><button class="btn btn-stay" onclick="castVote('${w.id}','STAY')">✋ STAY</button><button class="btn btn-go" onclick="castVote('${w.id}','GO')">🚀 GO</button></div>`
+      :`<div style="text-align:center;font-size:14px;color:var(--sub);padding:10px 0;font-weight:600"><strong style="color:${w.myVote==='STAY'?'var(--stay)':'var(--go)'}">${w.myVote}</strong>에 투표했습니다</div>`}
+    </div>
+    <div>
+      <div class="answer-section-title">답변 ${w.answers.length}개</div>
+      <div class="answer-form">
+        <textarea class="answer-textarea" id="answer-text-input" rows="3" placeholder="답변을 작성해주세요..."></textarea>
+        <div class="answer-type-row">
+          <button class="type-btn type-btn-stay" id="ans-type-stay" onclick="selectAnswerType('STAY')">✋ STAY</button>
+          <button class="type-btn type-btn-go" id="ans-type-go" onclick="selectAnswerType('GO')">🚀 GO</button>
+        </div>
+        <div class="point-info">✨ 답변 등록 시 +5P 획득</div>
+        <button class="btn-submit-answer" onclick="submitAnswer('${w.id}')">답변 등록하기</button>
+      </div>
+      <div id="answer-list">${answersHTML}</div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn-kakao-share" onclick="shareKakao()">🟡 카카오로 공유하기</button>
+    </div>`;
+}
+
+function shareKakao(){
+  navigator.clipboard.writeText(window.location.href).then(()=>{
+    showToast('링크 복사됐어요! 카카오톡에 붙여넣기 하세요 🔗');
+  }).catch(()=>{showToast('링크 복사됐어요! 카카오톡에 붙여넣기 하세요 🔗');});
+}
+
+let selAnsType=null;
+function selectAnswerType(t){
+  selAnsType=t;
+  document.getElementById('ans-type-stay').classList.toggle('selected',t==='STAY');
+  document.getElementById('ans-type-go').classList.toggle('selected',t==='GO');
+}
+function toggleLike(wid,aid){
+  const w=state.worries.find(x=>x.id===wid);if(!w)return;
+  const a=w.answers.find(x=>x.id===aid);if(!a)return;
+  a.likedByMe?a.likes--:a.likes++;a.likedByMe=!a.likedByMe;
+  saveState();renderDetail(w);
+}
+function castVote(wid,type){
+  const w=state.worries.find(x=>x.id===wid);if(!w||w.myVote)return;
+  w.myVote=type;type==='STAY'?w.stayVotes++:w.goVotes++;
+  saveState();renderDetail(w);showToast(type==='STAY'?'✋ STAY에 투표했습니다!':'🚀 GO에 투표했습니다!');
+}
+function submitAnswer(wid){
+  const txt=document.getElementById('answer-text-input').value.trim();
+  if(!txt){showToast('답변 내용을 입력해주세요');return;}
+  if(!selAnsType){showToast('STAY 또는 GO를 선택해주세요');return;}
+  const w=state.worries.find(x=>x.id===wid);if(!w)return;
+  w.answers.push({id:'ans_'+Date.now(),author:'나',type:selAnsType,text:txt,likes:0,likedByMe:false});
+  state.points+=5;state.pointHistory.push({desc:`답변 등록 (${w.title.slice(0,15)}...)`,pt:5,time:Date.now()});
+  saveState();selAnsType=null;renderDetail(w);showToast('✅ 답변 등록! +5P 획득');
+}
+document.getElementById('btn-back-detail').addEventListener('click',()=>{
+  document.getElementById('detail-view').classList.remove('open');
+  selAnsType=null;renderWorryList();renderHomeRecent();
+});
+
+// MODAL
+let selPt=0;
+document.getElementById('btn-open-modal').addEventListener('click',()=>document.getElementById('modal-post').classList.add('open'));
+document.getElementById('modal-post').addEventListener('click',e=>{if(e.target===document.getElementById('modal-post'))document.getElementById('modal-post').classList.remove('open');});
+document.querySelectorAll('.pt-opt').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.pt-opt').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected');selPt=parseInt(b.dataset.pt);
+}));
+document.getElementById('btn-submit-worry').addEventListener('click',()=>{
+  const title=document.getElementById('m-title').value.trim();
+  const content=document.getElementById('m-content').value.trim();
+  if(!title||!content){showToast('제목과 내용을 입력해주세요');return;}
+  if(selPt>state.points){showToast('포인트가 부족합니다');return;}
+  state.worries.push({id:'w_'+Date.now(),industry:document.getElementById('m-industry').value,years:document.getElementById('m-years').value,salary:document.getElementById('m-salary').value,title,content,stayVotes:0,goVotes:0,points:selPt,answers:[],myVote:null,time:Date.now()});
+  if(selPt>0){state.points-=selPt;state.pointHistory.push({desc:`고민 올리기 (${title.slice(0,15)}...)`,pt:-selPt,time:Date.now()});}
+  saveState();
+  document.getElementById('modal-post').classList.remove('open');
+  document.getElementById('m-title').value='';document.getElementById('m-content').value='';
+  renderWorryList();renderHomeRecent();showToast('✅ 고민이 등록됐어요!');
+});
+
+// MY INFO
+const LEVELS=[
+  {name:'주니어체커',min:0,max:199,lv:1},
+  {name:'시니어체커',min:200,max:499,lv:2},
+  {name:'블랙첵파트너',min:500,max:999,lv:3},
+  {name:'블랙첵마스터',min:1000,max:Infinity,lv:4}
+];
+function getLevel(p){return LEVELS.find(l=>p>=l.min&&p<=l.max)||LEVELS[0];}
+
+function renderMyInfo(){
+  document.getElementById('my-point').textContent=state.points;
+  const lv=getLevel(state.points);
+  const next=LEVELS[lv.lv]||null;
+  const prog=next?Math.round((state.points-lv.min)/(next.min-lv.min)*100):100;
+  document.getElementById('level-card').innerHTML=`
+    <div class="level-badge-row"><span class="level-badge">Lv${lv.lv}</span><span class="level-name">${lv.name}</span></div>
+    <div class="level-next">${next?`다음 레벨까지 ${next.min-state.points}P 남음 (${next.name})`:'최고 레벨 달성! 🎉'}</div>
+    <div class="level-bar-bg"><div class="level-bar-inner" style="width:${Math.min(100,prog)}%"></div></div>`;
+  const el=document.getElementById('point-history-list');
+  if(!state.pointHistory.length){el.innerHTML='<div class="empty-state" style="padding:16px 0"><div class="empty-text">포인트 내역이 없어요</div></div>';return;}
+  el.innerHTML=[...state.pointHistory].sort((a,b)=>b.time-a.time).map(h=>{
+    const d=new Date(h.time);
+    const t=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return `<div class="hist-item"><div class="hist-icon">${h.pt>0?'⬆️':'⬇️'}</div><div><div class="hist-desc">${h.desc}</div><div class="hist-time">${t}</div></div><div class="hist-pt ${h.pt>0?'plus':'minus'}">${h.pt>0?'+':''}${h.pt}P</div></div>`;
+  }).join('');
+}
+
+// ── 공통 데이터 테이블 ──
+const SALARY_CURVE={
+  'IT/게임':[3200,5200,7100,8800],'금융/핀테크':[3800,5800,8200,10500],
+  '제약/바이오':[3200,4700,6400,8000],'제조/자동차':[3400,5000,6800,8200],
+  '유통/커머스':[2900,4400,5900,7000],'컨설팅':[4200,6500,9200,12000],
+  '미디어/콘텐츠':[2700,4200,5600,6800]
+};
+const GROWTH_MATRIX={
+  'IT/게임':{'개발/엔지니어':92,'기획/PM':85,'영업/마케팅':72,'HR/경영지원':60,'재무/회계':58,'R&D/연구':88},
+  '금융/핀테크':{'개발/엔지니어':88,'기획/PM':80,'영업/마케팅':70,'HR/경영지원':58,'재무/회계':78,'R&D/연구':65},
+  '제약/바이오':{'개발/엔지니어':70,'기획/PM':72,'영업/마케팅':74,'HR/경영지원':60,'재무/회계':60,'R&D/연구':95},
+  '제조/자동차':{'개발/엔지니어':75,'기획/PM':65,'영업/마케팅':62,'HR/경영지원':55,'재무/회계':58,'R&D/연구':80},
+  '유통/커머스':{'개발/엔지니어':82,'기획/PM':78,'영업/마케팅':75,'HR/경영지원':55,'재무/회계':58,'R&D/연구':50},
+  '컨설팅':{'개발/엔지니어':78,'기획/PM':88,'영업/마케팅':80,'HR/경영지원':72,'재무/회계':85,'R&D/연구':70},
+  '미디어/콘텐츠':{'개발/엔지니어':80,'기획/PM':75,'영업/마케팅':72,'HR/경영지원':52,'재무/회계':50,'R&D/연구':55}
+};
+const DEMAND_MATRIX={
+  '개발/엔지니어':{low:82,mid:95,high:78},'기획/PM':{low:70,mid:88,high:72},
+  '영업/마케팅':{low:72,mid:80,high:65},'HR/경영지원':{low:55,mid:62,high:50},
+  '재무/회계':{low:60,mid:70,high:62},'R&D/연구':{low:65,mid:78,high:85}
+};
+const EDU_BASE={'고졸':50,'전문대졸':58,'4년제(지방)':65,'4년제(인서울)':75,'대학원석사':85,'대학원박사':92};
+const EDU_WEIGHT={'IT/게임':0.75,'금융/핀테크':1.05,'제약/바이오':1.25,'제조/자동차':1.0,'유통/커머스':0.85,'컨설팅':1.15,'미디어/콘텐츠':0.80};
+const SIZE_SCORE={'대기업(1000명+)':90,'중견기업(300~999명)':72,'중소기업(50~299명)':55,'스타트업(~49명)':40};
+const WELFARE_SCORE={'업계 최상위':90,'업계 평균 이상':72,'업계 평균':55,'평균 이하':35};
+
+function getYearBand(y){return y<=3?'low':y<=7?'mid':'high';}
+function getExpectedSalary(ind,y){
+  const c=SALARY_CURVE[ind];if(!c)return 5000;
+  if(y<=3)return c[0]+(c[1]-c[0])*(y-1)/2;
+  if(y<=7)return c[1]+(c[2]-c[1])*(y-4)/3;
+  if(y<=12)return c[2]+(c[3]-c[2])*(y-8)/4;
+  return c[3];
+}
+
+// ── TAB3: POSITION ──
+let posCharts={c1:null,c2:null,c3:null};
+
+function updateStepUI(step){
+  [1,2,3].forEach(i=>{
+    const dw=document.getElementById('sdw-'+i);
+    const d=document.getElementById('sd-'+i);
+    const p=document.getElementById('step-'+i);
+    dw.className='step-dot-wrap'+(i<step?' done':i===step?' active':'');
+    d.className='step-dot'+(i<step?' done':i===step?' active':'');
+    d.textContent=i<step?'✓':i;
+    p.className='step-panel'+(i===step?' active':'');
+  });
+  [1,2].forEach(i=>{document.getElementById('sl-'+i).className='step-line'+(i<step?' done':'');});
+  const tc=document.getElementById('tab-position');if(tc)tc.scrollTop=0;
+}
+
+function goStep(step){
+  if(step===2){
+    const ind=document.getElementById('c-industry').value;
+    const rol=document.getElementById('c-role').value;
+    const yr=parseInt(document.getElementById('c-years').value);
+    const sal=parseInt(document.getElementById('c-salary').value);
+    if(!ind||!rol||!yr||!sal){showToast('모든 정량 항목을 입력해주세요');return;}
+    if(yr<1||yr>20){showToast('연차는 1~20 사이로 입력해주세요');return;}
+    if(sal<1000){showToast('연봉을 만원 단위로 입력해주세요');return;}
+  }
+  updateStepUI(step);
+}
+
+function runDiagnosis(){
+  const tInd=document.getElementById('t-industry').value;
+  const tSize=document.getElementById('t-size').value;
+  const tSal=parseInt(document.getElementById('t-salary').value);
+  const tWel=document.getElementById('t-welfare').value;
+  if(!tInd||!tSize||!tSal||!tWel){showToast('모든 정량 항목을 입력해주세요');return;}
+  if(tSal<1000){showToast('연봉을 만원 단위로 입력해주세요');return;}
+  updateStepUI(3);
+
+  const cInd=document.getElementById('c-industry').value;
+  const cRol=document.getElementById('c-role').value;
+  const cYr=parseInt(document.getElementById('c-years').value);
+  const cSal=parseInt(document.getElementById('c-salary').value);
+  const cEdu=document.getElementById('c-edu').value;
+  const cCulture=parseInt(document.getElementById('s-c-culture').value);
+  const cOwner=parseInt(document.getElementById('s-c-owner').value);
+  const cGrowth=parseInt(document.getElementById('s-c-growth').value);
+  const cWlb=parseInt(document.getElementById('s-c-wlb').value);
+  const tOwner=parseInt(document.getElementById('s-t-owner').value);
+  const tCulture=parseInt(document.getElementById('s-t-culture').value);
+  const tGrowth=parseInt(document.getElementById('s-t-growth').value);
+  const tWlb=parseInt(document.getElementById('s-t-wlb').value);
+
+  const expC=getExpectedSalary(cInd,cYr);
+  const cHW=[
+    Math.min(100,Math.round((cSal/expC)*50+25)),
+    Math.min(100,Math.round((cSal/expC)*55)),
+    DEMAND_MATRIX[cRol]?.[getYearBand(cYr)]??65,
+    Math.min(100,Math.round((EDU_BASE[cEdu]??65)*(EDU_WEIGHT[cInd]??1.0)))
+  ];
+  const cSW=[cCulture*10,cOwner*10,cGrowth*10,cWlb*10];
+  const cAll=[...cHW,...cSW];
+  const cHWavg=Math.round(cHW.reduce((a,b)=>a+b,0)/4);
+  const cSWavg=Math.round(cSW.reduce((a,b)=>a+b,0)/4);
+
+  const expT=getExpectedSalary(tInd,cYr);
+  const tHW=[
+    Math.min(100,Math.round((tSal/expT)*50+25)),
+    SIZE_SCORE[tSize]??55,
+    GROWTH_MATRIX[tInd]?.[cRol]??65,
+    WELFARE_SCORE[tWel]??55
+  ];
+  const tSW=[tCulture*10,(11-tOwner)*10,tGrowth*10,tWlb*10];
+  const tAll=[...tHW,...tSW];
+  const tHWavg=Math.round(tHW.reduce((a,b)=>a+b,0)/4);
+  const tSWavg=Math.round(tSW.reduce((a,b)=>a+b,0)/4);
+
+  const hwImp=tHWavg-cHWavg;
+  const swImp=tSWavg-cSWavg;
+  const fitScore=Math.min(100,Math.max(0,Math.round(50+hwImp*0.5+swImp*0.5)));
+
+  if(posCharts.c1){posCharts.c1.destroy();}
+  if(posCharts.c2){posCharts.c2.destroy();}
+  if(posCharts.c3){posCharts.c3.destroy();}
+
+  const avg8=[60,60,60,60,60,60,60,60];
+  const cOpts={responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.04)'},angleLines:{color:'rgba(255,255,255,.04)'},pointLabels:{color:'#6B8599',font:{size:10,family:"'Noto Sans KR',sans-serif",weight:'600'}}}}};
+
+  posCharts.c1=new Chart(document.getElementById('chart-current').getContext('2d'),{type:'radar',data:{labels:['연봉경쟁력','연차처우','시장수요','학력프리미엄','기업문화','오너신뢰도','성장체감','워라밸'],datasets:[{label:'현재',data:cAll,backgroundColor:'rgba(45,107,228,.18)',borderColor:'#2D6BE4',borderWidth:2,pointBackgroundColor:'#2D6BE4',pointRadius:3,pointBorderWidth:0},{label:'평균',data:avg8,backgroundColor:'rgba(107,133,153,.06)',borderColor:'rgba(107,133,153,.4)',borderWidth:1.5,borderDash:[4,4],pointRadius:2,pointBorderWidth:0}]},options:cOpts});
+  posCharts.c2=new Chart(document.getElementById('chart-target').getContext('2d'),{type:'radar',data:{labels:['제시연봉','기업안정성','산업성장','복지수준','조직문화','오너리스크','직무성장','워라밸평판'],datasets:[{label:'이직기업',data:tAll,backgroundColor:'rgba(255,107,53,.18)',borderColor:'#FF6B35',borderWidth:2,pointBackgroundColor:'#FF6B35',pointRadius:3,pointBorderWidth:0},{label:'평균',data:avg8,backgroundColor:'rgba(107,133,153,.06)',borderColor:'rgba(107,133,153,.4)',borderWidth:1.5,borderDash:[4,4],pointRadius:2,pointBorderWidth:0}]},options:cOpts});
+  posCharts.c3=new Chart(document.getElementById('chart-fit').getContext('2d'),{type:'radar',data:{labels:['연봉','처우/안정','수요/성장','학력/복지','문화','오너','성장환경','워라밸'],datasets:[{label:'현재',data:cAll,backgroundColor:'rgba(45,107,228,.14)',borderColor:'#2D6BE4',borderWidth:2,pointBackgroundColor:'#2D6BE4',pointRadius:3,pointBorderWidth:0},{label:'이직기업',data:tAll,backgroundColor:'rgba(255,107,53,.14)',borderColor:'#FF6B35',borderWidth:2,pointBackgroundColor:'#FF6B35',pointRadius:3,pointBorderWidth:0}]},options:cOpts});
+
+  document.getElementById('c-hw-avg').textContent=cHWavg;
+  document.getElementById('c-sw-avg').textContent=cSWavg;
+  document.getElementById('t-hw-avg').textContent=tHWavg;
+  document.getElementById('t-sw-avg').textContent=tSWavg;
+
+  const fEl=document.getElementById('fit-score-val');
+  const fG=document.getElementById('fit-grade');
+  const fD=document.getElementById('fit-desc');
+  const fH=document.getElementById('fit-hero');
+  fEl.textContent=fitScore;
+  if(fitScore>=75){fEl.style.color='var(--mint)';fG.style.color='var(--mint)';fG.textContent='✅ 이직 적극 권장';fD.textContent='이직 기업이 현재 직장 대비 HW·SW 모두 우수합니다. GO를 검토하세요.';fH.style.borderColor='rgba(0,201,167,.25)';}
+  else if(fitScore>=50){fEl.style.color='#FFD93D';fG.style.color='#FFD93D';fG.textContent='⚠️ 트레이드오프 존재';fD.textContent='일부 영역은 개선되지만 포기해야 할 부분도 있습니다. 우선순위를 점검하세요.';fH.style.borderColor='rgba(255,217,61,.2)';}
+  else{fEl.style.color='var(--go)';fG.style.color='var(--go)';fG.textContent='🚨 STAY 권장';fD.textContent='현재 직장 대비 이직 기업의 개선 폭이 제한적입니다. 더 좋은 기회를 기다리세요.';fH.style.borderColor='rgba(255,107,53,.2)';}
+
+  function delta(v){return v>0?`<span class="compare-delta up">▲+${v}</span>`:v<0?`<span class="compare-delta dn">▼${v}</span>`:`<span class="compare-delta eq">→0</span>`;}
+  document.getElementById('compare-cards').innerHTML=`
+    <div class="compare-card"><div><div class="compare-card-label">HARDWARE</div></div><div class="compare-card-vals"><span class="compare-from">${cHWavg}점</span><span class="compare-arrow">→</span><span class="compare-to">${tHWavg}점</span>${delta(hwImp)}</div></div>
+    <div class="compare-card"><div><div class="compare-card-label">SOFTWARE</div></div><div class="compare-card-vals"><span class="compare-from">${cSWavg}점</span><span class="compare-arrow">→</span><span class="compare-to">${tSWavg}점</span>${delta(swImp)}</div></div>`;
+}
+
+function resetPosition(){
+  updateStepUI(1);
+  ['c-culture','c-owner','c-growth','c-wlb','t-culture','t-owner','t-growth','t-wlb'].forEach(id=>{
+    const s=document.getElementById('s-'+id);const v=document.getElementById('v-'+id);
+    if(s)s.value=5;if(v)v.textContent='5';
+  });
+  if(posCharts.c1){posCharts.c1.destroy();posCharts.c1=null;}
+  if(posCharts.c2){posCharts.c2.destroy();posCharts.c2=null;}
+  if(posCharts.c3){posCharts.c3.destroy();posCharts.c3=null;}
+}
+
+// ── TAB4: 연봉 계산기 ──
+document.getElementById('btn-calc').addEventListener('click',()=>{
+  const sal=parseInt(document.getElementById('calc-salary').value);
+  const ind=document.getElementById('calc-industry').value;
+  const rol=document.getElementById('calc-role').value;
+  const yr=parseInt(document.getElementById('calc-years').value);
+  const reason=parseFloat(document.getElementById('calc-reason').value);
+  if(!sal||!ind||!rol||!yr){showToast('모든 항목을 입력해주세요');return;}
+  if(sal<1000){showToast('연봉을 만원 단위로 입력해주세요');return;}
+  if(yr<1||yr>20){showToast('연차는 1~20 사이로 입력해주세요');return;}
+
+  const avgSal=Math.round(getExpectedSalary(ind,yr));
+  const minReq=Math.round(sal*1.05/100)*100;
+  const recReq=Math.round(sal*(1+0.10+reason)/100)*100;
+  const maxReq=Math.round(Math.max(avgSal*1.15,sal*1.25)/100)*100;
+  const diff=Math.round((sal/avgSal-1)*100);
+
+  document.getElementById('calc-form-section').style.display='none';
+  document.getElementById('calc-result-section').style.display='block';
+  document.getElementById('calc-min').textContent=minReq.toLocaleString()+'만원';
+  document.getElementById('calc-rec').textContent=recReq.toLocaleString()+'만원';
+  document.getElementById('calc-max').textContent=maxReq.toLocaleString()+'만원';
+  document.getElementById('calc-avg').textContent=avgSal.toLocaleString()+'만원';
+  const diffEl=document.getElementById('calc-diff');
+  if(diff>0){diffEl.textContent=`+${diff}% (업계 평균 이상)`;diffEl.style.color='var(--mint)';}
+  else if(diff<0){diffEl.textContent=`${diff}% (업계 평균 미만)`;diffEl.style.color='var(--go)';}
+  else{diffEl.textContent='업계 평균 수준';diffEl.style.color='var(--sub)';}
+
+  const tipEl=document.getElementById('calc-tip');
+  if(diff<-5)tipEl.textContent='업계 평균 데이터를 협상 근거로 활용하세요. 데이터 기반 협상이 가장 효과적입니다.';
+  else if(diff<=10)tipEl.textContent='이직 사유와 구체적인 성과를 수치로 제시하세요. 임팩트 중심으로 어필하세요.';
+  else tipEl.textContent='현재 연봉 수준 유지 + 알파(인센티브, 스톡, 유연근무 등)를 목표로 하세요.';
+});
+
+function resetCalc(){
+  document.getElementById('calc-form-section').style.display='block';
+  document.getElementById('calc-result-section').style.display='none';
+}
+
+// ── INIT ──
+loadState();initAuth();
+</script>
+</body>
+</html>
